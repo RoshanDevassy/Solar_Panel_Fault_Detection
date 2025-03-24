@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 export default function ImageUploader() {
-
-  const BASE_URL =  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+  const BASE_URL =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
   console.log("Using API base URL:", BASE_URL);
-  console.log("NEXT_PUBLIC_API_BASE_URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
+  console.log(
+    "NEXT_PUBLIC_API_BASE_URL:",
+    process.env.NEXT_PUBLIC_API_BASE_URL
+  );
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [panelPrediction, setPanelPrediction] = useState(null);
@@ -18,7 +22,7 @@ export default function ImageUploader() {
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     setImage(file);
     setPreview(URL.createObjectURL(file)); // Show image preview
     setPanelPrediction(null);
@@ -29,7 +33,7 @@ export default function ImageUploader() {
   // Upload image to FastAPI for Solar Panel Detection
   const handleUpload = async () => {
     if (!image) {
-      alert("Please select an image first!");
+      alert("⚠️Please select an image first!");
       return;
     }
 
@@ -46,8 +50,8 @@ export default function ImageUploader() {
         body: formData,
       });
 
-      if (!panelResponse.ok) throw new Error("Failed to detect solar panel");
-      
+      if (!panelResponse.ok) throw new Error("❌ Failed to detect solar panel");
+
       const panelData = await panelResponse.json();
       setPanelPrediction(panelData);
 
@@ -62,13 +66,13 @@ export default function ImageUploader() {
         body: formData,
       });
 
-      if (!faultResponse.ok) throw new Error("Failed to detect fault");
+      if (!faultResponse.ok) throw new Error("❌ Failed to detect fault");
 
       const faultData = await faultResponse.json();
       setFaultPrediction(faultData);
     } catch (error) {
       console.error("Error:", error);
-      setError("Failed to process the image. Please try again.");
+      setError("❌ Failed to process the image. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -99,13 +103,14 @@ export default function ImageUploader() {
       <button
         onClick={handleUpload}
         disabled={loading}
-        className={`px-4 py-2 text-white font-semibold rounded-md transition ${
+        className={`flex gap-2 px-4 py-2 text-white font-semibold rounded-md transition ${
           loading
             ? "bg-gray-400 cursor-not-allowed"
             : "bg-blue-500 hover:bg-blue-600"
         }`}
       >
-        {loading ? "Processing..." : "Upload & Predict"}
+          {loading ? <span className=" animate-spin duration-75"><Image src="/icons/processing_icon.svg" height={25} width={25} alt="processing_icon"/></span> : ''}
+        {loading ? "Processing..." : "⬆️ Upload & Predict"}
       </button>
 
       {/* Error Message */}
@@ -115,7 +120,13 @@ export default function ImageUploader() {
       {panelPrediction && (
         <div className="text-lg font-medium dark:text-white mt-3">
           <h3>Panel Detection: {panelPrediction.predicted_class}</h3>
-          <p>Confidence: {panelPrediction.confidence ? `${(panelPrediction.confidence * 100).toFixed(2)}%` : "N/A"}</p>
+          <p>
+            Confidence:{" "}
+            {panelPrediction.confidence !== undefined &&
+            panelPrediction.confidence !== null
+              ? `${(panelPrediction.confidence * 100).toFixed(2)}%`
+              : "N/A"}
+          </p>
         </div>
       )}
 
@@ -133,7 +144,6 @@ export default function ImageUploader() {
     </div>
   );
 }
-
 
 /* 'use client'
 
